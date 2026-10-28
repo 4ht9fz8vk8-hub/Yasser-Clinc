@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عيادات د. ياسر الشهاوي | استشاري أمراض الباطنة والقلب</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#0f172a',
+                            800: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .tab-active { border-bottom: 3px solid #0284c7; color: #0284c7; font-weight: 700; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- LOGIN / SECURITY LOCK SCREEN OVERLAY -->
+    <div id="authOverlay" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 space-y-6 shadow-2xl border border-slate-100 text-center">
+            <div class="w-20 h-20 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto text-4xl shadow-inner">
+                <i class="fa-solid fa-user-lock"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-extrabold text-slate-900">تسجيل الدخول للنظام</h2>
+                <p class="text-slate-500 text-xs mt-1">عيادات د. ياسر الشهاوي - يرجى إدخال الحساب</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-right">
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700">معرف المستخدم (User ID)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-id-badge absolute right-3 top-3.5 text-slate-400"></i>
+                        <input type="text" id="authUserId" required placeholder="أدخل معرف المستخدم" class="w-full pr-10 pl-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition text-slate-800 text-sm">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700">كلمة المرور (Password)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute right-3 top-3.5 text-slate-400"></i>
+                        <input type="password" id="authPassword" required placeholder="••••••••" class="w-full pr-10 pl-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition text-slate-800 text-sm">
+                    </div>
+                </div>
+
+                <p id="authErrorMsg" class="text-rose-500 text-xs font-semibold hidden text-center pt-1"><i class="fa-solid fa-circle-exclamation"></i> خطأ في معرف المستخدم أو كلمة المرور!</p>
+
+                <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2 text-base mt-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> دخول النظام
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTENT (Hidden initially until logged in) -->
+    <div id="appContainer" class="hidden min-h-screen flex flex-col justify-between">
+
+        <!-- Header / Navbar -->
+        <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20">
+                    <div class="flex items-center space-x-4 space-x-reverse">
+                        <div class="bg-sky-600 p-3 rounded-2xl shadow-inner">
+                            <i class="fa-solid fa-heart-pulse text-3xl text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl sm:text-2xl font-bold tracking-wide">عيادات د. ياسر الشهاوي</h1>
+                            <p class="text-xs text-sky-400 font-medium">استشاري أمراض الباطنة والقلب والأوعية الدموية</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm font-semibold">
+                        <a href="#clinic-info" class="hidden md:inline-block hover:text-sky-400 transition">الفروع والمواعيد</a>
+                        <a href="#booking-section" class="hidden sm:inline-block bg-sky-600 hover:bg-sky-500 text-white px-5 py-2.5 rounded-xl transition shadow-md">حجز موعد</a>
+                        <button onclick="handleLogout()" class="bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white px-3 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-1.5 text-xs">
+                            <i class="fa-solid fa-power-off"></i> خروج
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+            <!-- Hero Banner -->
+            <section class="bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl space-y-4">
+                    <span class="bg-sky-500/20 text-sky-300 border border-sky-400/30 text-xs px-3 py-1 rounded-full font-semibold">نظام الحجز المباشر والإدارة</span>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold leading-tight">مرحباً بكم في العيادة الرسمية للدكتور ياسر الشهاوي</h2>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">نقدم أعلى مستوى من الرعاية الطبية الشاملة لأمراض القلب، الضغط، السكري، والأوعية الدموية بأحدث الأجهزة الطبية.</p>
+                    <div class="pt-2 flex flex-wrap gap-4">
+                        <a href="#booking-section" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition shadow-lg inline-flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-check"></i> احجز موعدك الآن
+                        </a>
+                        <a href="#clinic-info" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 font-semibold px-6 py-3 rounded-xl transition inline-flex items-center gap-2">
+                            <i class="fa-solid fa-clock"></i> مواعيد العمل
+                        </a>
+                    </div>
+                </div>
+                <i class="fa-solid fa-stethoscope text-slate-800/40 text-[200px] absolute -left-10 -bottom-10 pointer-events-none"></i>
+            </section>
+
+            <!-- Clinic Branches & Schedules -->
+            <section id="clinic-info" class="space-y-6">
+                <div class="border-r-4 border-sky-600 pr-4">
+                    <h3 class="text-2xl font-bold text-slate-900">فروع العيادة ومواعيد العمل</h3>
+                    <p class="text-slate-500 text-sm">اختر الفرع المناسب لمعرفة أوقات العمل وحجز الموعد</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Port Said Branch Card -->
+                    <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition border border-slate-100 p-6 space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-sky-100 text-sky-600 p-3 rounded-xl">
+                                    <i class="fa-solid fa-hospital-user text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg text-slate-900">فرع بورسعيد</h4>
+                                    <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-sky-600 ml-1"></i> بورسعيد</p>
+                                </div>
+                            </div>
+                            <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">متاح</span>
+                        </div>
+                        <hr class="border-slate-100">
+                        <div class="space-y-2 text-xs text-slate-600">
+                            <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-100">
+                                <span>السبت - الأحد - الاثنين</span>
+                                <span class="font-bold text-slate-800">8:00 م - 1:00 ص</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-100">
+                                <span>الثلاثاء - الأربعاء</span>
+                                <span class="font-bold text-slate-800">6:00 م - 9:00 م</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 text-rose-500 font-semibold">
+                                <span>الخميس والجمعة</span>
+                                <span>إجازة أسبوعية</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Damietta Branch Card -->
+                    <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition border border-sky-100 p-6 space-y-4 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 bg-sky-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-br-lg">جديد</div>
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-sky-100 text-sky-600 p-3 rounded-xl">
+                                    <i class="fa-solid fa-clinic-medical text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg text-slate-900">فرع عيادات دمياط</h4>
+                                    <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-sky-600 ml-1"></i> دمياط</p>
+                                </div>
+                            </div>
+                            <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">متاح</span>
+                        </div>
+                        <hr class="border-slate-100">
+                        <div class="space-y-2 text-xs text-slate-600">
+                            <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-100">
+                                <span>السبت - الأحد - الاثنين</span>
+                                <span class="font-bold text-slate-800">5:00 م - 8:00 م</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-100">
+                                <span>الثلاثاء - الأربعاء</span>
+                                <span class="font-bold text-slate-800">9:00 م - 1:00 ص</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 text-rose-500 font-semibold">
+                                <span>الخميس والجمعة</span>
+                                <span>إجازة أسبوعية</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cairo Branch Card -->
+                    <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition border border-slate-100 p-6 space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-sky-100 text-sky-600 p-3 rounded-xl">
+                                    <i class="fa-solid fa-hospital text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg text-slate-900">فرع القاهرة</h4>
+                                    <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-sky-600 ml-1"></i> القاهرة</p>
+                                </div>
+                            </div>
+                            <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">متاح</span>
+                        </div>
+                        <hr class="border-slate-100">
+                        <div class="space-y-2 text-xs text-slate-600">
+                            <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-100">
+                                <span>الخميس - الجمعة</span>
+                                <span class="font-bold text-slate-800">9:00 م - 12:00 ص</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 text-rose-500 font-semibold">
+                                <span>باقي أيام الأسبوع</span>
+                                <span>إجازة</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Booking System & Tab Switcher -->
+            <section id="booking-section" class="bg-white rounded-3xl shadow-xl border border-slate-100 p-6 sm:p-8">
+                <div class="flex border-b border-slate-200 mb-6 text-base sm:text-lg font-semibold gap-6">
+                    <button id="tab-patient-btn" onclick="switchTab('patient')" class="pb-3 tab-active transition flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> تسجيل وحجز موعد مريض
+                    </button>
+                    <button id="tab-records-btn" onclick="switchTab('records')" class="pb-3 text-slate-500 hover:text-sky-600 transition flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i> سجل الحجوزات والمرضى
+                    </button>
+                </div>
+
+                <!-- Tab 1: Patient Booking Form -->
+                <div id="tab-patient-content" class="space-y-6">
+                    <form id="booking-form" onsubmit="handleBookingSubmit(event)" class="space-y-6">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Patient Full Name -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700">اسم المريض بالكامل <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-user absolute right-3 top-3.5 text-slate-400"></i>
+                                    <input type="text" id="patientName" required placeholder="أدخل اسم المريض رباعي" class="w-full pr-10 pl-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition text-slate-800">
+                                </div>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700">رقم الهاتف <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-phone absolute right-3 top-3.5 text-slate-400"></i>
+                                    <input type="tel" id="patientPhone" required placeholder="01xxxxxxxxx" pattern="[0-9]{11}" title="يرجى إدخال رقم هاتف صحيح مكون من 11 رقم" class="w-full pr-10 pl-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition text-slate-800">
+                                </div>
+                            </div>
+
+                            <!-- Branch Selection -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700">اختر الفرع <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-building-hospital absolute right-3 top-3.5 text-slate-400"></i>
+                                    <select id="branchSelect" onchange="updateBookingTimeOptions()" required class="w-full pr-10 pl-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition text-slate-800 appearance-none">
+                                        <option value="">-- اختر الفرع --</option>
+                                        <option value="بورسعيد">فرع بورسعيد</option>
+                                        <option value="دمياط">فرع عيادات دمياط</option>
+                                        <option value="القاهرة">فرع القاهرة</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Visit Type -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700">نوع الكشف <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-notes-medical absolute right-3 top-3.5 text-slate-400"></i>
+                                    <select id="visitType" required class="w-full pr-10 pl-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition text-slate-800 appearance-none">
+                                        <option value="كشف جديد">كشف جديد</option>
+                                        <option value="إعادة / استشارة">إعادة / استشارة</option>
+                                        <option value="فحص رسم قلب">فحص رسم قلب / موجات صوتية</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Booking Date -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700">تاريخ الموعد <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <input type="date" id="bookingDate" onchange="updateBookingTimeOptions()" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition text-slate-800">
+                                </div>
+                            </div>
+
+                            <!-- Available Time Slot (15 mins intervals) -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700">التوقيت المتاح (كل 15 دقيقة) <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-clock absolute right-3 top-3.5 text-slate-400"></i>
+                                    <select id="bookingTime" required class="w-full pr-10 pl-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition text-slate-800 appearance-none">
+                                        <option value="">يرجى اختيار الفرع والتاريخ أولاً</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Notes / Symptoms -->
+                        <div class="space-y-2">
+                            <label class="block text-sm font-bold text-slate-700">ملاحظات طبية أو أعراض (اختياري)</label>
+                            <textarea id="patientNotes" rows="3" placeholder="اكتب أي ملاحظات أو شكوى رئيسية..." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition text-slate-800"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2 text-lg">
+                            <i class="fa-solid fa-check-circle"></i> تأكيد الحجز وإصدار التذكرة
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tab 2: Records & Patient Logs -->
+                <div id="tab-records-content" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-search absolute right-3 top-3 text-slate-400"></i>
+                            <input type="text" id="searchInput" oninput="filterRecords()" placeholder="بحث باسم المريض أو الهاتف..." class="w-full pr-10 pl-4 py-2 bg-white border border-slate-200 rounded-xl outline-none text-sm">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="clearAllData()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs px-3 py-2 rounded-lg font-semibold border border-rose-200 transition">
+                                <i class="fa-solid fa-trash"></i> مسح جميع الحجوزات
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Patient Records Table -->
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                        <table class="w-full text-right border-collapse">
+                            <thead class="bg-slate-900 text-slate-200 text-xs uppercase font-bold">
+                                <tr>
+                                    <th class="p-4">كود الحجز</th>
+                                    <th class="p-4">اسم المريض</th>
+                                    <th class="p-4">رقم الهاتف</th>
+                                    <th class="p-4">الفرع</th>
+                                    <th class="p-4">الموعد والتاريخ</th>
+                                    <th class="p-4">نوع الكشف</th>
+                                    <th class="p-4">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-sm">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-center text-xs space-y-2 no-print">
+            <p>© 2026 عيادات الدكتور ياسر الشهاوي - جميع الحقوق محفوظة</p>
+            <p>استشاري أمراض الباطنة والقلب والأوعية الدموية</p>
+        </footer>
+
+    </div>
+
+    <!-- Confirmation Ticket Modal -->
+    <div id="ticketModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-6 shadow-2xl relative border border-slate-100">
+            <button onclick="closeModal()" class="absolute left-4 top-4 text-slate-400 hover:text-slate-600 text-xl"><i class="fa-solid fa-times"></i></button>
+            
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-slate-900">تم تأكيد الحجز بنجاح</h3>
+                <p class="text-slate-500 text-xs">بطاقة حجز مريض - عيادات د. ياسر الشهاوي</p>
+            </div>
+
+            <div id="ticketContent" class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 text-sm">
+                <!-- Dynamic Content -->
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="window.print()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-print"></i> طباعة التذكرة
+                </button>
+                <button onclick="closeModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition text-sm">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification Toast -->
+    <div id="toast" class="fixed bottom-6 left-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-50">
+        <i id="toastIcon" class="fa-solid fa-circle-info text-sky-400"></i>
+        <span id="toastMessage" class="text-sm font-semibold"></span>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        const STORAGE_KEY = 'dr_yasser_clinic_appointments_v3';
+        const AUTH_KEY = 'dr_yasser_authenticated_session';
+
+        // Login System
+        function handleLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('authUserId').value.trim();
+            const pass = document.getElementById('authPassword').value.trim();
+            const errorMsg = document.getElementById('authErrorMsg');
+
+            if (id === 'Yasser71' && pass === 'DadaYasser71') {
+                sessionStorage.setItem(AUTH_KEY, 'true');
+                document.getElementById('authOverlay').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                errorMsg.classList.add('hidden');
+                showToast('مرحباً بك! تم تسجل الدخول بنجاح', 'success');
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function checkAuth() {
+            if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+                document.getElementById('authOverlay').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+            } else {
+                document.getElementById('authOverlay').classList.remove('hidden');
+                document.getElementById('appContainer').classList.add('hidden');
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem(AUTH_KEY);
+            checkAuth();
+            showToast('تم تسجيل الخروج وقفل النظام', 'info');
+        }
+
+        function getAppointments() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        }
+
+        function saveAppointments(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function switchTab(tab) {
+            const patientTab = document.getElementById('tab-patient-content');
+            const recordsTab = document.getElementById('tab-records-content');
+            const patientBtn = document.getElementById('tab-patient-btn');
+            const recordsBtn = document.getElementById('tab-records-btn');
+
+            if (tab === 'patient') {
+                patientTab.classList.remove('hidden');
+                recordsTab.classList.add('hidden');
+                patientBtn.classList.add('tab-active');
+                recordsBtn.classList.remove('tab-active');
+            } else {
+                patientTab.classList.add('hidden');
+                recordsTab.classList.remove('hidden');
+                recordsBtn.classList.add('tab-active');
+                patientBtn.classList.remove('tab-active');
+                renderRecords();
+            }
+        }
+
+        // Helper to generate 15-min interval slots
+        function generate15MinSlots(startHour, startMin, endHour, endMin) {
+            const slots = [];
+            let current = new Date();
+            current.setHours(startHour, startMin, 0, 0);
+
+            let end = new Date();
+            end.setHours(endHour, endMin, 0, 0);
+
+            if (endHour < startHour || (endHour === startHour && endMin < startMin)) {
+                end.setDate(end.getDate() + 1);
+            }
+
+            while (current < end) {
+                let h = current.getHours();
+                let m = current.getMinutes();
+                let period = h >= 12 ? 'مساءً' : 'صباحاً';
+                let displayH = h % 12 === 0 ? 12 : h % 12;
+                let displayM = m === 0 ? '00' : m;
+
+                slots.push(`${displayH}:${displayM} ${period}`);
+                current.setMinutes(current.getMinutes() + 15);
+            }
+            return slots;
+        }
+
+        // Update Time Options based on Branch and Day
+        function updateBookingTimeOptions() {
+            const branch = document.getElementById('branchSelect').value;
+            const dateInput = document.getElementById('bookingDate').value;
+            const timeSelect = document.getElementById('bookingTime');
+
+            timeSelect.innerHTML = '';
+
+            if (!branch || !dateInput) {
+                timeSelect.innerHTML = '<option value="">يرجى اختيار الفرع والتاريخ أولاً</option>';
+                return;
+            }
+
+            const selectedDate = new Date(dateInput);
+            const dayOfWeek = selectedDate.getDay(); 
+
+            let availableSlots = [];
+
+            if (branch === 'دمياط') {
+                if (dayOfWeek === 6 || dayOfWeek === 0 || dayOfWeek === 1) { 
+                    availableSlots = generate15MinSlots(17, 0, 20, 0);
+                } else if (dayOfWeek === 2 || dayOfWeek === 3) {
+                    availableSlots = generate15MinSlots(21, 0, 1, 0);
+                } else {
+                    timeSelect.innerHTML = '<option value="">العيادة إجازة في هذا اليوم (الخميس والجمعة)</option>';
+                    return;
+                }
+            } else if (branch === 'بورسعيد') {
+                if (dayOfWeek === 6 || dayOfWeek === 0 || dayOfWeek === 1) {
+                    availableSlots = generate15MinSlots(20, 0, 1, 0);
+                } else if (dayOfWeek === 2 || dayOfWeek === 3) {
+                    availableSlots = generate15MinSlots(18, 0, 21, 0);
+                } else {
+                    timeSelect.innerHTML = '<option value="">العيادة إجازة في هذا اليوم (الخميس والجمعة)</option>';
+                    return;
+                }
+            } else if (branch === 'القاهرة') {
+                if (dayOfWeek === 4 || dayOfWeek === 5) {
+                    availableSlots = generate15MinSlots(21, 0, 0, 0);
+                } else {
+                    timeSelect.innerHTML = '<option value="">العيادة تعمل فقط يومي الخميس والجمعة</option>';
+                    return;
+                }
+            }
+
+            if (availableSlots.length > 0) {
+                timeSelect.innerHTML = '<option value="">-- اختر التوقيت (كل 15 دقيقة) --</option>';
+                availableSlots.forEach(slot => {
+                    const opt = document.createElement('option');
+                    opt.value = slot;
+                    opt.textContent = slot;
+                    timeSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function handleBookingSubmit(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('patientName').value.trim();
+            const phone = document.getElementById('patientPhone').value.trim();
+            const branch = document.getElementById('branchSelect').value;
+            const type = document.getElementById('visitType').value;
+            const date = document.getElementById('bookingDate').value;
+            const time = document.getElementById('bookingTime').value;
+            const notes = document.getElementById('patientNotes').value.trim();
+
+            if (!time || time.includes('إجازة') || time.includes('يرجى') || time.includes('تعمل فقط')) {
+                showToast('يرجى اختيار توقيت متاح للحجز', 'error');
+                return;
+            }
+
+            const ticketId = 'YSH-' + Math.floor(100000 + Math.random() * 900000);
+
+            const newRecord = {
+                id: ticketId,
+                name,
+                phone,
+                branch,
+                type,
+                date,
+                time,
+                notes,
+                createdAt: new Date().toLocaleDateString('ar-EG')
+            };
+
+            const list = getAppointments();
+            list.unshift(newRecord);
+            saveAppointments(list);
+
+            showTicketModal(newRecord);
+
+            document.getElementById('booking-form').reset();
+            document.getElementById('bookingTime').innerHTML = '<option value="">يرجى اختيار الفرع والتاريخ أولاً</option>';
+            showToast('تم تسجيل الحجز بنجاح', 'success');
+        }
+
+        function showTicketModal(record) {
+            const ticketContent = document.getElementById('ticketContent');
+            ticketContent.innerHTML = `
+                <div class="flex justify-between border-b pb-2">
+                    <span class="text-slate-500">رقم الحجز:</span>
+                    <span class="font-bold text-sky-600">${record.id}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="text-slate-500">اسم المريض:</span>
+                    <span class="font-bold text-slate-800">${record.name}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="text-slate-500">الفرع:</span>
+                    <span class="font-bold text-slate-800">${record.branch}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="text-slate-500">تاريخ وساعة الموعد:</span>
+                    <span class="font-bold text-slate-800">${record.date} (${record.time})</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="text-slate-500">نوع الكشف:</span>
+                    <span class="font-bold text-slate-800">${record.type}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">رقم الهاتف:</span>
+                    <span class="font-bold text-slate-800">${record.phone}</span>
+                </div>
+            `;
+            document.getElementById('ticketModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('ticketModal').classList.add('hidden');
+        }
+
+        function renderRecords(dataFilter = null) {
+            const tbody = document.getElementById('recordsTableBody');
+            const data = dataFilter || getAppointments();
+
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-8 text-slate-400">
+                            <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
+                            <p>لا توجد حجوزات مسجلة حالياً</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map(item => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 font-mono font-bold text-sky-600">${item.id}</td>
+                    <td class="p-4 font-bold text-slate-800">${item.name}</td>
+                    <td class="p-4 text-slate-600">${item.phone}</td>
+                    <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-semibold">${item.branch}</span></td>
+                    <td class="p-4 text-xs font-semibold text-slate-700">${item.date}<br><span class="text-sky-600">${item.time}</span></td>
+                    <td class="p-4"><span class="bg-sky-50 text-sky-700 px-2.5 py-1 rounded-lg text-xs font-semibold">${item.type}</span></td>
+                    <td class="p-4">
+                        <button onclick="deleteRecord('${item.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold">
+                            <i class="fa-solid fa-trash ml-1"></i> حذف
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterRecords() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const list = getAppointments();
+            const filtered = list.filter(item => 
+                item.name.toLowerCase().includes(query) || 
+                item.phone.includes(query) ||
+                item.id.toLowerCase().includes(query)
+            );
+            renderRecords(filtered);
+        }
+
+        function deleteRecord(id) {
+            let list = getAppointments();
+            list = list.filter(item => item.id !== id);
+            saveAppointments(list);
+            renderRecords();
+            showToast('تم حذف الحجز بنجاح', 'info');
+        }
+
+        function clearAllData() {
+            if (confirm('هل أنت تأكد من مسح كافة بيانات الحجوزات؟')) {
+                localStorage.removeItem(STORAGE_KEY);
+                renderRecords();
+                showToast('تم مسح كافة البيانات', 'info');
+            }
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const messageEl = document.getElementById('toastMessage');
+            const iconEl = document.getElementById('toastIcon');
+
+            messageEl.textContent = msg;
+
+            if (type === 'success') {
+                iconEl.className = 'fa-solid fa-circle-check text-emerald-400';
+            } else if (type === 'error') {
+                iconEl.className = 'fa-solid fa-circle-exclamation text-rose-400';
+            } else {
+                iconEl.className = 'fa-solid fa-circle-info text-sky-400';
+            }
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+        window.onload = function() {
+            checkAuth();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('bookingDate').setAttribute('min', today);
+        };
+    </script>
+</body>
+</html>
